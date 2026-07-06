@@ -1,10 +1,10 @@
-from rich.console import Console
+from app.application import ConnectIQ
 
-console = Console()
 
 def main():
-    console.print("[bold green]Welcome to ConnectIQ[/bold green]")
-    console.print("Your Business Intelligence Assistant")
+    app = ConnectIQ()
+    app.run()
+
 
 if __name__ == "__main__":
     main()
