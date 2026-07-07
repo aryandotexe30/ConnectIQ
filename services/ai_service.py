@@ -14,25 +14,33 @@ class AIService:
         api_key = os.getenv("GEMINI_API_KEY")
 
         if not api_key:
+
             raise Exception(
-                "GEMINI_API_KEY not found in .env"
+                "GEMINI_API_KEY not found."
             )
 
-        self.client = genai.Client(api_key=api_key)
+        self.client = genai.Client(
+            api_key=api_key
+        )
 
-        self.model = "gemini-2.5-flash"
-
-    def research_company(self, company_name: str, company_text: str):
+    def research_company(
+        self,
+        company_name,
+        company_text,
+    ):
 
         prompt = f"""
-You are an expert B2B business intelligence analyst.
+You are a senior business intelligence analyst.
 
-Your task is to analyse the information below and ONLY use the information
-provided.
+Analyse the following company.
 
-Never invent people.
-Never guess financials.
-If something is unavailable, return an empty string.
+Company:
+
+{company_name}
+
+Website Text:
+
+{company_text}
 
 Return ONLY valid JSON.
 
@@ -43,7 +51,8 @@ Schema:
     "industry":"",
     "products":[],
     "services":[],
-    "financials":{{
+    "financials":
+    {{
         "revenue":"",
         "employees":"",
         "market_cap":"",
@@ -54,64 +63,57 @@ Schema:
             "name":"",
             "title":"",
             "department":"",
-            "reason":"",
+            "email":"",
+            "phone":"",
+            "linkedin":"",
             "confidence":0
         }}
-    ]
+    ],
+    "sales_insight":
+    {{
+        "best_department":"",
+        "reason":"",
+        "opportunity_score":0
+    }}
 }}
 
-Company:
+Never explain.
 
-{company_name}
+Never use markdown.
 
-Information:
-
-{company_text}
+Return JSON only.
 """
+
+        response = self.client.models.generate_content(
+
+            model="gemini-2.5-flash",
+
+            contents=prompt
+
+        )
+
+        text = response.text.strip()
+
+        if text.startswith("```"):
+
+            text = (
+                text.replace("```json", "")
+                .replace("```", "")
+                .strip()
+            )
 
         try:
 
-            response = self.client.models.generate_content(
+            return json.loads(text)
 
-                model=self.model,
-
-                contents=prompt
-
-            )
-
-            text = response.text.strip()
-
-            if text.startswith("```json"):
-                text = text.replace("```json", "")
-                text = text.replace("```", "").strip()
-
-            elif text.startswith("```"):
-                text = text.replace("```", "").strip()
-
-            data = json.loads(text)
-
-            return data
-
-        except Exception as e:
-
-            print()
-
-            print("Gemini Error")
-
-            print(e)
-
-            print()
+        except Exception:
 
             return {
                 "summary": "",
                 "industry": "",
                 "products": [],
                 "services": [],
-                "financials": {
-                    "revenue": "",
-                    "employees": "",
-                    "market_cap": "",
-                    "parent_company": ""
-                },
-                "people": []
+                "financials": {},
+                "people": [],
+                "sales_insight": {}
             }
