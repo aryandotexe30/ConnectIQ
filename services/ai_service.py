@@ -14,10 +14,7 @@ class AIService:
         api_key = os.getenv("GEMINI_API_KEY")
 
         if not api_key:
-
-            raise Exception(
-                "GEMINI_API_KEY not found."
-            )
+            raise Exception("GEMINI_API_KEY not found.")
 
         self.client = genai.Client(
             api_key=api_key
@@ -30,56 +27,100 @@ class AIService:
     ):
 
         prompt = f"""
-You are a senior business intelligence analyst.
+You are a Senior Business Intelligence Analyst.
 
-Analyse the following company.
+Your job is to build a COMPLETE business profile.
 
 Company:
 
 {company_name}
 
-Website Text:
+Collected Information:
 
 {company_text}
+
+Only use information that is present or can be inferred with high confidence.
+
+Never hallucinate.
+
+If a value is unavailable, return an empty string "" or an empty list [].
 
 Return ONLY valid JSON.
 
 Schema:
 
 {{
-    "summary":"",
-    "industry":"",
-    "products":[],
-    "services":[],
-    "financials":
+  "company_name":"",
+  "summary":"",
+  "industry":"",
+
+  "gst_number":"",
+  "cin":"",
+  "pan":"",
+
+  "incorporation_date":"",
+  "registered_address":"",
+  "headquarters":"",
+  "company_status":"",
+
+  "authorized_capital":"",
+  "paidup_capital":"",
+
+  "products":[],
+  "product_categories":[],
+  "brands":[],
+  "services":[],
+  "industries_served":[],
+  "manufacturing_locations":[],
+  "certifications":[],
+
+  "financials":
+  {{
+      "revenue":"",
+      "total_income":"",
+      "operating_profit":"",
+      "ebitda":"",
+      "net_profit":"",
+      "eps":"",
+      "market_cap":"",
+      "enterprise_value":"",
+      "assets":"",
+      "liabilities":"",
+      "net_worth":"",
+      "debt":"",
+      "cash_flow":"",
+      "employees":"",
+      "parent_company":""
+  }},
+
+  "people":
+  [
     {{
-        "revenue":"",
-        "employees":"",
-        "market_cap":"",
-        "parent_company":""
-    }},
-    "people":[
-        {{
-            "name":"",
-            "title":"",
-            "department":"",
-            "email":"",
-            "phone":"",
-            "linkedin":"",
-            "confidence":0
-        }}
-    ],
-    "sales_insight":
-    {{
-        "best_department":"",
-        "reason":"",
-        "opportunity_score":0
+      "name":"",
+      "title":"",
+      "department":"",
+      "email":"",
+      "phone":"",
+      "linkedin":"",
+      "confidence":0,
+      "source":""
     }}
+  ],
+
+  "competitors":[],
+  "customers":[],
+  "suppliers":[],
+
+  "sales_strategy":"",
+
+  "opportunity_score":0,
+
+  "sources":[]
 }}
 
-Never explain.
+Do NOT explain.
 
-Never use markdown.
+Do NOT use markdown.
 
 Return JSON only.
 """
@@ -98,22 +139,17 @@ Return JSON only.
 
             text = (
                 text.replace("```json", "")
-                .replace("```", "")
-                .strip()
+                    .replace("```", "")
+                    .strip()
             )
 
         try:
 
             return json.loads(text)
 
-        except Exception:
+        except Exception as e:
 
-            return {
-                "summary": "",
-                "industry": "",
-                "products": [],
-                "services": [],
-                "financials": {},
-                "people": [],
-                "sales_insight": {}
-            }
+            print("AI JSON Parsing Error")
+            print(e)
+
+            return {}
